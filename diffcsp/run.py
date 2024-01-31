@@ -18,6 +18,16 @@ from pytorch_lightning.callbacks import (
 from pytorch_lightning.loggers import WandbLogger
 
 from diffcsp.common.utils import log_hyperparameters, PROJECT_ROOT
+# custom part. because hydra can't find the module
+import diffcsp.pl_data.datamodule
+import diffcsp.pl_data.dataset
+import diffcsp.pl_modules.diffusion
+import diffcsp.pl_modules.diffusion_w_type
+import diffcsp.pl_modules.cspnet
+import diffcsp.pl_modules.diff_utils
+import diffcsp.pl_modules.gnn
+import diffcsp.pl_modules.model
+
 
 import wandb
 
@@ -116,20 +126,20 @@ def run(cfg: DictConfig) -> None:
 
     # Logger instantiation/configuration
     wandb_logger = None
-    if "wandb" in cfg.logging:
-        hydra.utils.log.info("Instantiating <WandbLogger>")
-        wandb_config = cfg.logging.wandb
-        wandb_logger = WandbLogger(
-            **wandb_config,
-            settings=wandb.Settings(start_method="fork"),
-            tags=cfg.core.tags,
-        )
-        hydra.utils.log.info("W&B is now watching <{cfg.logging.wandb_watch.log}>!")
-        wandb_logger.watch(
-            model,
-            log=cfg.logging.wandb_watch.log,
-            log_freq=cfg.logging.wandb_watch.log_freq,
-        )
+    # if "wandb" in cfg.logging:
+    #     hydra.utils.log.info("Instantiating <WandbLogger>")
+    #     wandb_config = cfg.logging.wandb
+    #     wandb_logger = WandbLogger(
+    #         **wandb_config,
+    #         settings=wandb.Settings(start_method="fork"),
+    #         tags=cfg.core.tags,
+    #     )
+    #     hydra.utils.log.info("W&B is now watching <{cfg.logging.wandb_watch.log}>!")
+    #     wandb_logger.watch(
+    #         model,
+    #         log=cfg.logging.wandb_watch.log,
+    #         log_freq=cfg.logging.wandb_watch.log_freq,
+    #     )
 
     # Store the YaML config separately into the wandb dir
     yaml_conf: str = OmegaConf.to_yaml(cfg=cfg)
@@ -147,7 +157,7 @@ def run(cfg: DictConfig) -> None:
     hydra.utils.log.info("Instantiating the Trainer")
     trainer = pl.Trainer(
         default_root_dir=hydra_dir,
-        logger=wandb_logger,
+        # logger=wandb_logger,
         callbacks=callbacks,
         deterministic=cfg.train.deterministic,
         check_val_every_n_epoch=cfg.logging.val_check_interval,
